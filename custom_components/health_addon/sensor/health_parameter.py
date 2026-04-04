@@ -22,10 +22,11 @@ async def async_setup_entry(
 ) -> None:
     """Set up health parameter sensors."""
     db: Database = hass.data["health_addon"]["database"]
+    user_id = config_entry.data.get("user_id")
     
     entities = []
     for param in PARAMS:
-        entities.append(HealthParameterSensor(db, param))
+        entities.append(HealthParameterSensor(db, user_id, param))
     
     async_add_entities(entities)
 
@@ -33,8 +34,9 @@ async def async_setup_entry(
 class HealthParameterSensor(SensorEntity):
     """Sensor for health parameters."""
 
-    def __init__(self, database: Database, parameter_name: str):
+    def __init__(self, database: Database, user_id: str, parameter_name: str):
         self._database = database
+        self._user_id = user_id
         self._parameter_name = parameter_name
         self._attr_extra_state_attributes = {}
         self._attr_native_value = None
@@ -46,7 +48,7 @@ class HealthParameterSensor(SensorEntity):
 
     @property
     def unique_id(self) -> str:
-        return f"health_addon_{self._parameter_name}"
+        return f"health_addon_{self._user_id}_{self._parameter_name}"
 
     @property
     def native_value(self):
@@ -56,17 +58,31 @@ class HealthParameterSensor(SensorEntity):
     def native_unit_of_measurement(self):
         return self._attr_native_unit
 
+    @property
+    def icon(self) -> str:
+        icons = {
+            "pressure_systolic": "mdi:heart-pulse",
+            "pressure_diastolic": "mdi:heart-pulse",
+            "blood_sugar": "mdi:blood-bag",
+            "heart_rate": "mdi:heart",
+            "temperature": "mdi:thermometer",
+            "weight": "mdi:scale",
+            "oxygen": "mdi:lungs",
+        }
+        return icons.get(self._parameter_name, "mdi:heartbeat")
+
     async def async_update(self) -> None:
         """Update sensor state."""
         try:
-            history = await self._database.get_health_parameters(self._parameter_name, limit=1)
+            history = await self._database.get_health_parameters(self._user_id, self._parameter_name, limit=1)
             if history:
                 latest = history[0]
                 self._attr_native_value = latest["value"]
                 self._attr_native_unit = latest["unit"]
                 self._attr_extra_state_attributes = {
                     "recorded_at": latest["recorded_at"],
-                    "history": await self._database.get_health_parameters(self._parameter_name, limit=10)
+                    "user_id": self._user_id,
+                    "history": await self._database.get_health_parameters(self._user_id, self._parameter_name, limit=10)
                 }
             else:
                 self._attr_native_value = None
@@ -76,5 +92,5 @@ class HealthParameterSensor(SensorEntity):
 
     async def add_reading(self, value: float, unit: str) -> None:
         """Add a new reading."""
-        await self._database.add_health_parameter(self._parameter_name, value, unit)
+        await self._database.add_health_parameter(self._user_id, self._parameter_name, value, unit)
         await self.async_update()

@@ -19,16 +19,17 @@ async def async_setup_entry(
 ) -> None:
     """Set up sensors for Health Addon."""
     db: Database = hass.data["health_addon"]["database"]
+    user_id = config_entry.data.get("user_id")
     
     entities = []
     
     # Create health parameter sensors
     for param in PARAMS:
-        entities.append(HealthParameterSensor(db, param))
+        entities.append(HealthParameterSensor(db, user_id, param))
     
     # Create medication sensors
-    medications = await db.get_medications()
+    medications = await db.get_medications(user_id)
     for med in medications:
-        entities.append(MedicationSensor(db, med["id"], med["name"], med["dosage"]))
+        entities.append(MedicationSensor(db, user_id, med["id"], med["name"], med["dosage"]))
     
     async_add_entities(entities)

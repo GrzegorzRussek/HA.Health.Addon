@@ -22,12 +22,26 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEntry) -> bool:
     """Set up Health Addon from a config entry."""
-    database = Database(hass.config.path("custom_components/health_addon/health_data.db"))
-    await database.init()
-    hass.data[DOMAIN]["database"] = database
+    user_id = entry.data.get("user_id")
+    user_name = entry.data.get("name", user_id)
+    
+    # Initialize database (global)
+    if hass.data[DOMAIN]["database"] is None:
+        db = Database(hass.config.path("custom_components/health_addon/health_data.db"))
+        await db.init()
+        hass.data[DOMAIN]["database"] = db
+    
+    # Add user if not exists
+    db = hass.data[DOMAIN]["database"]
+    await db.add_user(user_id, user_name)
+    
+    # Register services with user context
+    await async_register_services(hass, db, user_id)
 
-    # Register services
-    await async_register_services(hass, database)
+    # Create config entry data for sensors
+    entry.async_on_unload(
+        entry.add_update_listener(async_update_entry)
+    )
 
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
@@ -35,10 +49,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEnt
     return True
 
 
+async def async_update_entry(hass: HomeAssistant, entry: config_entries.ConfigEntry) -> None:
+    """Handle config entry update."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: config_entries.ConfigEntry) -> bool:
     """Unload a config entry."""
     await hass.config_entries.async_unload_platforms(entry, ["sensor"])
-    db: Database = hass.data[DOMAIN].get("database")
-    if db:
-        await db.close()
     return True
