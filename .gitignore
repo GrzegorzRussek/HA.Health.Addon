@@ -1,0 +1,4 @@
+# Git ignore
+.openclaw/
+*.md
+!README.md
