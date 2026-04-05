@@ -32,35 +32,45 @@ class HealthAddonConfigFlow(config_entries.ConfigFlow, domain="health_addon"):
         except Exception:
             pass
         
-        # Also get HA auth users
+        # Also get HA auth users (skip if already in persons)
         try:
             users = await hass.auth.async_get_users()
             for user in users:
                 if not user.system_generated:
-                    persons.append({
-                        "entity_id": f"user_{user.id}",
-                        "name": user.name
-                    })
+                    # Check if already added as person entity
+                    entity_id = f"user_{user.id}"
+                    if entity_id not in [p["entity_id"] for p in persons]:
+                        persons.append({
+                            "entity_id": entity_id,
+                            "name": user.name
+                        })
         except Exception:
             pass
         
-        # Build dropdown options
+        # Build dropdown options (deduplicate by name)
         options = {}
+        seen_names = set()
         
-        if persons:
-            # Show existing persons as selectable options
-            for p in persons:
-                options[p["entity_id"]] = f"👤 {p['name']}"
+        for p in persons:
+            # Deduplicate by name
+            if p["name"].lower() in seen_names:
+                continue
+            seen_names.add(p["name"].lower())
+            options[p["entity_id"]] = f"👤 {p['name']}"
+        
+        # Add manual option if no persons
+        if not options:
+            options["_manual_"] = "— Manual —"
         
         # Always offer to skip (no person selected)
         if not persons:
             options["_none_"] = "— No person selected (manual mode) —"
         
         if user_input is not None:
-            selected = user_input.get("select_person", "_none_")
+            selected = user_input.get("select_person", "_manual_")
             person_name = "Manual"
             
-            if selected != "_none_":
+            if selected != "_manual_":
                 # Extract name from selected
                 for p in persons:
                     if p["entity_id"] == selected:
@@ -68,7 +78,7 @@ class HealthAddonConfigFlow(config_entries.ConfigFlow, domain="health_addon"):
                         break
             
             # Use selected entity_id as user_id
-            user_id = selected if selected != "_none_" else f"manual_{selected}"
+            user_id = selected if selected != "_manual_" else "manual"
             
             return self.async_create_entry(
                 title=f"Health Addon - {person_name}",
