@@ -1,0 +1,78 @@
+{
+  "config": {
+    "steps": {
+      "user": {
+        "title": "Health Addon",
+        "description": "Wybierz użytkownika lub dodaj nowego",
+        "select_user": "Wybierz Użytkownika",
+        "new": "Dodaj Nowego Użytkownika"
+      },
+      "new_user": {
+        "title": "Dodaj Nowego Użytkownika",
+        "user_id": "ID Użytkownika",
+        "user_id_hint": "Unikalny identyfikator (np. jan, alice)",
+        "name": "Nazwa Wyświetlana",
+        "name_hint": "Nazwa wyświetlana na panelu"
+      }
+    }
+  },
+  "services": {
+    "add_health_parameter": {
+      "name": "Dodaj Parametr Zdrowotny",
+      "description": "Zapisz odczyt parametru zdrowotnego",
+      "fields": {
+        "user_id": "ID Użytkownika",
+        "name": "Nazwa Parametru",
+        "value": "Wartość",
+        "unit": "Jednostka"
+      }
+    },
+    "add_medication": {
+      "name": "Dodaj Lek",
+      "description": "Dodaj lek do inwentarza",
+      "fields": {
+        "user_id": "ID Użytkownika",
+        "name": "Nazwa Leku",
+        "dosage": "Dawkowanie",
+        "barcode": "Kod Kreskowy",
+        "expiration_date": "Data Ważności",
+        "quantity": "Ilość",
+        "schedule": "Harmonogram",
+        "schedule_hint": "Godziny przyjmowania (np. 08:00, 12:00, 20:00)"
+      }
+    },
+    "log_dose": {
+      "name": "Zapisz Dawke",
+      "description": "Zapisz gdy dawka została przyjęta"
+    },
+    "update_quantity": {
+      "name": "Aktualizuj Ilość",
+      "description": "Aktualizuj ilość leku"
+    },
+    "delete_medication": {
+      "name": "Usuń Lek",
+      "description": "Usuń lek"
+    }
+  },
+  "sensor": {
+    "medication": {
+      "name": "Lek {name}",
+      "dosage": "Dawkowanie",
+      "quantity": "Ilość",
+      "last_taken": "Ostatnio Przyjęty",
+      "hours_since_last": "Godzin od Ostatniej Dawki",
+      "schedule": "Harmonogram",
+      "next_dose": "Następna Dawka",
+      "expiration": "Ważny do"
+    }
+  },
+  "parameters": {
+    "pressure_systolic": "Ciśnienie (Skurczowe)",
+    "pressure_diastolic": "Ciśnienie (Rozkurczowe)",
+    "blood_sugar": "Cukier we Krwi",
+    "heart_rate": "Tętno",
+    "temperature": "Temperatura",
+    "weight": "Waga",
+    "oxygen": "Nasycenie Tlenem"
+  }
+}

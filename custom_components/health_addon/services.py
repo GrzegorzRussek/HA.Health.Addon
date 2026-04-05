@@ -47,13 +47,14 @@ async def async_register_services(hass: HomeAssistant, database: Database, user_
         barcode = call.data.get("barcode")
         expiration_date = call.data.get("expiration_date")
         quantity = call.data.get("quantity", 0)
+        schedule = call.data.get("schedule")
         
         if not name or not dosage:
             _LOGGER.error("Missing name or dosage for medication")
             return {"success": False, "error": "Missing name or dosage"}
         
-        med_id = await database.add_medication(param_user_id, name, dosage, barcode, expiration_date, quantity)
-        _LOGGER.info("Added medication for %s: %s (%s)", param_user_id, name, dosage)
+        med_id = await database.add_medication(param_user_id, name, dosage, barcode, expiration_date, quantity, schedule)
+        _LOGGER.info("Added medication for %s: %s (%s), schedule: %s", param_user_id, name, dosage, schedule)
         return {"success": True, "medication_id": med_id}
 
     async def log_dose(call: ServiceCall) -> dict:

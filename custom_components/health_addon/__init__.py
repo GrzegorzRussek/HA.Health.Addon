@@ -1,10 +1,13 @@
 """Health Addon for Home Assistant."""
 import asyncio
 import logging
+from pathlib import Path
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import translation
 
 from .utils.database import Database
+from .utils import load_translations, set_language
 from .services import async_register_services
 
 _LOGGER = logging.getLogger(__name__)
@@ -17,6 +20,13 @@ CONFIG_SCHEMA = config_entries.ConfigSchema({DOMAIN: {}})
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Health Addon component."""
     hass.data[DOMAIN] = {"database": None}
+    
+    # Load translations based on HA language
+    translations_path = Path(__file__).parent / "translations"
+    ha_language = hass.config.language or "en"
+    load_translations(translations_path, ha_language)
+    _LOGGER.info("Health Addon loaded with language: %s", ha_language)
+    
     return True
 
 

@@ -33,8 +33,14 @@ All parameters are stored with full history, allowing you to create charts and t
 ### Option 1: HACS (Recommended)
 1. Install [HACS](https://hacs.xyz/) if not already installed
 2. Go to HACS → Integrations → "+"
-3. Search for "Health Addon" and install
-4. Restart Home Assistant
+3. Click the three-dot menu (top right) → **Custom repositories**
+4. Add this repository URL:
+   ```
+   https://github.com/GrzegorzRussek/HA.Health.Addon
+   ```
+5. Category: **Integration**
+6. Click Add → Search for "Health Addon" → Install
+7. Restart Home Assistant
 
 ### Option 2: Manual Installation
 1. Copy `custom_components/health_addon` folder to your Home Assistant's `custom_components` folder

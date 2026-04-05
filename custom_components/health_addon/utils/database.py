@@ -54,6 +54,7 @@ class Database:
                 barcode TEXT,
                 expiration_date DATE,
                 quantity INTEGER DEFAULT 0,
+                schedule TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
@@ -165,11 +166,11 @@ class Database:
         ]
 
     # Medications
-    async def add_medication(self, user_id: str, name: str, dosage: str, barcode: str = None, expiration_date: str = None, quantity: int = 0) -> int:
+    async def add_medication(self, user_id: str, name: str, dosage: str, barcode: str = None, expiration_date: str = None, quantity: int = 0, schedule: str = None) -> int:
         """Add a medication to inventory."""
         cursor = await self.conn.execute(
-            "INSERT INTO medications (user_id, name, dosage, barcode, expiration_date, quantity) VALUES (?, ?, ?, ?, ?, ?)",
-            (user_id, name, dosage, barcode, expiration_date, quantity)
+            "INSERT INTO medications (user_id, name, dosage, barcode, expiration_date, quantity, schedule) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (user_id, name, dosage, barcode, expiration_date, quantity, schedule)
         )
         await self.conn.commit()
         return cursor.lastrowid
@@ -188,31 +189,31 @@ class Database:
         """Get all medications, optionally filtered by user."""
         if user_id:
             cursor = await self.conn.execute(
-                """SELECT id, user_id, name, dosage, barcode, expiration_date, quantity 
+                """SELECT id, user_id, name, dosage, barcode, expiration_date, quantity, schedule 
                    FROM medications WHERE user_id = ? ORDER BY name""",
                 (user_id,)
             )
         else:
             cursor = await self.conn.execute(
-                """SELECT id, user_id, name, dosage, barcode, expiration_date, quantity 
+                """SELECT id, user_id, name, dosage, barcode, expiration_date, quantity, schedule 
                    FROM medications ORDER BY user_id, name"""
             )
         rows = await cursor.fetchall()
         return [
-            {"id": row[0], "user_id": row[1], "name": row[2], "dosage": row[3], "barcode": row[4], "expiration_date": row[5], "quantity": row[6]}
+            {"id": row[0], "user_id": row[1], "name": row[2], "dosage": row[3], "barcode": row[4], "expiration_date": row[5], "quantity": row[6], "schedule": row[7]}
             for row in rows
         ]
 
     async def get_medication_by_barcode(self, user_id: str, barcode: str) -> Optional[dict]:
         """Get medication by barcode for a user."""
         cursor = await self.conn.execute(
-            """SELECT id, user_id, name, dosage, barcode, expiration_date, quantity 
+            """SELECT id, user_id, name, dosage, barcode, expiration_date, quantity, schedule 
                FROM medications WHERE user_id = ? AND barcode = ?""",
             (user_id, barcode)
         )
         row = await cursor.fetchone()
         if row:
-            return {"id": row[0], "user_id": row[1], "name": row[2], "dosage": row[3], "barcode": row[4], "expiration_date": row[5], "quantity": row[6]}
+            return {"id": row[0], "user_id": row[1], "name": row[2], "dosage": row[3], "barcode": row[4], "expiration_date": row[5], "quantity": row[6], "schedule": row[7]}
         return None
 
     async def delete_medication(self, user_id: str, medication_id: int) -> None:

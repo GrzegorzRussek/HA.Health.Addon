@@ -1,0 +1,17 @@
+{
+  "name": "Health Addon",
+  "content_in_root": false,
+  "filename": "health_addon",
+  "hide": false,
+  "homeassistant": "2022.12.0",
+  "domains": [],
+  "manifest": {
+    "codeowners": ["@GrzegorzRussek"],
+    "documentation": "https://github.com/GrzegorzRussek/HA.Health.Addon#readme",
+    "issue_tracker": "https://github.com/GrzegorzRussek/HA.Health.Addon/issues",
+    "name": "Health Addon",
+    "requirements": ["aiosqlite"],
+    "version": "1.0.0"
+  },
+  "upload_repository": true
+}

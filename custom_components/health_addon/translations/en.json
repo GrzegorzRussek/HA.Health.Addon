@@ -1,0 +1,78 @@
+{
+  "config": {
+    "steps": {
+      "user": {
+        "title": "Health Addon",
+        "description": "Select user or add new",
+        "select_user": "Select User",
+        "new": "Add New User"
+      },
+      "new_user": {
+        "title": "Add New User",
+        "user_id": "User ID",
+        "user_id_hint": "Unique identifier (e.g., john, alice)",
+        "name": "Display Name",
+        "name_hint": "Name shown in dashboard"
+      }
+    }
+  },
+  "services": {
+    "add_health_parameter": {
+      "name": "Add Health Parameter",
+      "description": "Record a health parameter reading",
+      "fields": {
+        "user_id": "User ID",
+        "name": "Parameter Name",
+        "value": "Value",
+        "unit": "Unit"
+      }
+    },
+    "add_medication": {
+      "name": "Add Medication",
+      "description": "Add medication to inventory",
+      "fields": {
+        "user_id": "User ID",
+        "name": "Medication Name",
+        "dosage": "Dosage",
+        "barcode": "Barcode",
+        "expiration_date": "Expiration Date",
+        "quantity": "Quantity",
+        "schedule": "Schedule",
+        "schedule_hint": "Times to take (e.g., 08:00, 12:00, 20:00)"
+      }
+    },
+    "log_dose": {
+      "name": "Log Dose",
+      "description": "Log when a dose was taken"
+    },
+    "update_quantity": {
+      "name": "Update Quantity",
+      "description": "Update medication quantity"
+    },
+    "delete_medication": {
+      "name": "Delete Medication",
+      "description": "Remove a medication"
+    }
+  },
+  "sensor": {
+    "medication": {
+      "name": "Medication {name}",
+      "dosage": "Dosage",
+      "quantity": "Quantity",
+      "last_taken": "Last Taken",
+      "hours_since_last": "Hours Since Last Dose",
+      "schedule": "Schedule",
+      "next_dose": "Next Dose",
+      "expiration": "Expires"
+    }
+  },
+  "parameters": {
+    "pressure_systolic": "Blood Pressure (Systolic)",
+    "pressure_diastolic": "Blood Pressure (Diastolic)",
+    "blood_sugar": "Blood Sugar",
+    "heart_rate": "Heart Rate",
+    "temperature": "Temperature",
+    "weight": "Weight",
+    "oxygen": "Oxygen Saturation"
+  }
+}

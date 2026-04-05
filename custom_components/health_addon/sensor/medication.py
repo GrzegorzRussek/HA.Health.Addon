@@ -1,4 +1,5 @@
 """Medication sensors for Health Addon."""
+import json
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
@@ -14,6 +15,27 @@ from ..utils.database import Database
 _LOGGER = logging.getLogger(__name__)
 
 
+def parse_schedule(schedule_str: str) -> list[datetime]:
+    """Parse schedule string to list of times."""
+    if not schedule_str:
+        return []
+    try:
+        times = json.loads(schedule_str)
+        result = []
+        now = datetime.now()
+        for time_str in times:
+            # Parse HH:MM format
+            hour, minute = map(int, time_str.split(":"))
+            dt = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+            # If time has passed today, schedule for tomorrow
+            if dt <= now:
+                dt += timedelta(days=1)
+            result.append(dt)
+        return sorted(result)
+    except:
+        return []
+
+
 class MedicationSensor(SensorEntity):
     """Sensor for medication inventory and intake."""
 
@@ -23,6 +45,7 @@ class MedicationSensor(SensorEntity):
         self._medication_id = medication_id
         self._name = name
         self._dosage = dosage
+        self._schedule = None
         self._attr_native_value = None
         self._attr_extra_state_attributes = {}
 
@@ -51,12 +74,22 @@ class MedicationSensor(SensorEntity):
             
             if med:
                 self._attr_native_value = med["quantity"]
+                self._schedule = med.get("schedule")
                 self._attr_extra_state_attributes = {
                     "dosage": self._dosage,
                     "barcode": med.get("barcode"),
                     "expiration_date": med.get("expiration_date"),
                     "user_id": self._user_id,
+                    "schedule": self._schedule,
                 }
+                
+                # Parse schedule and calculate next dose
+                if self._schedule:
+                    schedule_times = parse_schedule(self._schedule)
+                    if schedule_times:
+                        next_dose = schedule_times[0]
+                        self._attr_extra_state_attributes["next_dose_at"] = next_dose.isoformat()
+                        self._attr_extra_state_attributes["schedule_times"] = [dt.isoformat() for dt in schedule_times]
                 
                 # Check last dose
                 last_dose = await self._database.get_last_dose(self._user_id, self._medication_id)
