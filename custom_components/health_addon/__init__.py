@@ -41,27 +41,31 @@ async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEnt
     user_id = entry.data.get("user_id")
     user_name = entry.data.get("name", user_id)
     
+    _LOGGER.info("Setting up Health Addon for user: %s", user_id)
+    
     # Initialize database (global)
     if hass.data[DOMAIN]["database"] is None:
         db = Database(hass.config.path("custom_components/health_addon/health_data.db"))
         await db.init()
         hass.data[DOMAIN]["database"] = db
+        _LOGGER.info("Database initialized")
     
     # Add user if not exists
     db = hass.data[DOMAIN]["database"]
     await db.add_user(user_id, user_name)
+    _LOGGER.info("User added: %s", user_id)
     
     # Register services with user context
     await async_register_services(hass, db, user_id)
-
+    _LOGGER.info("Services registered")
+    
     # Create config entry data for sensors
     entry.async_on_unload(
         entry.add_update_listener(async_update_entry)
     )
 
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setups(entry, "sensor")
-    )
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
+    _LOGGER.info("Sensor platforms set up")
     return True
 
 
