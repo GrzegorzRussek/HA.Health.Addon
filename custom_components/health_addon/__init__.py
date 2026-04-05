@@ -15,9 +15,6 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "health_addon"
 
-CONFIG_SCHEMA = config_entries.ConfigSchema({DOMAIN: {}})
-CONFIG_ENTRY_FLOW_VERSION = 1
-
 # Register config flow - required for HA to find it
 config_entries.HANDLERS.register(DOMAIN, config_flow.HealthAddonConfigFlow)
 
