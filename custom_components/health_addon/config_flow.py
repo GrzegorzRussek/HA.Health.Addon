@@ -9,80 +9,90 @@ from .utils.database import Database
 class HealthAddonConfigFlow(config_entries.ConfigFlow, domain="health_addon"):
     """Handle a config flow for Health Addon."""
 
-    VERSION = 2
+    VERSION = 3
 
     async def async_step_user(self, user_input=None):
-        """Handle the initial step - select or create user."""
+        """Handle the initial step - select from HA persons."""
         hass = self.hass
         
-        # Get existing users from database
-        db: Database = hass.data.get("health_addon", {}).get("database")
+        # Get persons from Home Assistant
+        persons = []
         
-        if db:
-            users = await db.get_users()
-        else:
-            users = []
+        # Try to get from person entities
+        try:
+            person_entities = hass.states.async_entity_ids("person")
+            for entity_id in person_entities:
+                state = hass.states.get(entity_id)
+                if state:
+                    person_name = state.name if hasattr(state, 'name') and state.name else entity_id.split(".")[1]
+                    persons.append({
+                        "entity_id": entity_id,
+                        "name": person_name
+                    })
+        except Exception:
+            pass
+        
+        # Also get HA auth users
+        try:
+            users = await hass.auth.async_get_users()
+            for user in users:
+                if not user.system_generated:
+                    persons.append({
+                        "entity_id": f"user_{user.id}",
+                        "name": user.name
+                    })
+        except Exception:
+            pass
         
         # Build dropdown options
         options = {}
         
-        if users:
-            # Show existing users as selectable options
-            for u in users:
-                options[u["user_id"]] = f"👤 {u['name']}"
+        if persons:
+            # Show existing persons as selectable options
+            for p in persons:
+                options[p["entity_id"]] = f"👤 {p['name']}"
         
-        # Always offer option to add new user
-        options["new"] = "➕ Add New Person"
+        # Always offer to skip (no person selected)
+        if not persons:
+            options["_none_"] = "— No person selected (manual mode) —"
         
         if user_input is not None:
-            if user_input.get("select_user") == "new":
-                # Show form to create new user
-                return await self.async_step_new_user(user_input)
-            else:
-                # Use existing user
-                user_id = user_input.get("select_user")
-                user_name = next((u["name"] for u in users if u["user_id"] == user_id), user_id)
-                return self.async_create_entry(
-                    title=f"Health Addon - {user_name}",
-                    data={"user_id": user_id}
-                )
+            selected = user_input.get("select_person", "_none_")
+            person_name = "Manual"
+            
+            if selected != "_none_":
+                # Extract name from selected
+                for p in persons:
+                    if p["entity_id"] == selected:
+                        person_name = p["name"]
+                        break
+            
+            # Use selected entity_id as user_id
+            user_id = selected if selected != "_none_" else f"manual_{selected}"
+            
+            return self.async_create_entry(
+                title=f"Health Addon - {person_name}",
+                data={"user_id": user_id, "name": person_name}
+            )
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
-                vol.Required("select_user", description={"suggested_value": list(options.keys())[0] if options else "new"}): vol.In(options)
+                vol.Required("select_person", description={"suggested_value": list(options.keys())[0] if options else "_none_"}): vol.In(options)
             }),
-            description_placeholders={"desc": "Select existing person or add new one"},
+            description_placeholders={"desc": "Select a person from Home Assistant"},
         )
 
-    async def async_step_new_user(self, user_input=None):
-        """Handle creating a new user."""
-        schema = {
-            vol.Required("name", description={"suggested_value": ""}): str,
-            vol.Optional("user_id", description={"suggested_value": ""}): str,
-        }
 
-        if user_input is not None:
-            name = user_input.get("name", "")
-            user_id = user_input.get("user_id", name.lower().replace(" ", "_"))
-            
-            if not user_id:
-                user_id = name.lower().replace(" ", "_") if name else "person"
-            
-            # Store in database
-            db: Database = self.hass.data.get("health_addon", {}).get("database")
-            if db:
-                await db.add_user(user_id, name)
-            
-            return self.async_create_entry(
-                title=f"Health Addon - {name}",
-                data={"user_id": user_id, "name": name}
-            )
+class HealthAddonOptionsFlow(config_entries.OptionsFlow):
+    """Options flow for Health Addon - allows reload without restart."""
 
+    async def async_step_init(self, user_input=None):
+        """Initialize options flow."""
         return self.async_show_form(
-            step_id="new_user",
-            data_schema=vol.Schema(schema),
-            description_placeholders={"hint": "Enter person's name - ID will be auto-generated"},
+            step_id="init",
+            data_schema=vol.Schema({}),
+            description_placeholders={"reload_note": "Reload to refresh the integration without restarting Home Assistant."},
         )
 
 
