@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import translation
 
 from . import config_flow
 from .utils.database import Database
@@ -14,9 +13,6 @@ from .services import async_register_services
 _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "health_addon"
-
-# Register config flow - required for HA to find it
-config_entries.HANDLERS.register(DOMAIN, config_flow.HealthAddonConfigFlow)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
