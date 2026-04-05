@@ -1,6 +1,8 @@
 """Internationalization utilities for Health Addon."""
+import asyncio
 import json
 import logging
+import aiofiles
 from pathlib import Path
 from typing import Optional
 
@@ -10,8 +12,8 @@ _translations: dict = {}
 _current_lang: str = "en"
 
 
-def load_translations(translations_path: Path, language: str = "en") -> None:
-    """Load translation files."""
+def load_translations_sync(translations_path: Path, language: str = "en") -> None:
+    """Load translation files synchronously (fallback)."""
     global _translations, _current_lang
     _current_lang = language
     
@@ -31,6 +33,35 @@ def load_translations(translations_path: Path, language: str = "en") -> None:
             _LOGGER.info("Loaded %s translations", language)
         else:
             _LOGGER.warning("Translation file not found: %s, using English", lang_path)
+
+
+async def load_translations(translations_path: Path, language: str = "en") -> None:
+    """Load translation files asynchronously."""
+    global _translations, _current_lang
+    _current_lang = language
+    
+    # Load English as fallback
+    en_path = translations_path / "en.json"
+    if en_path.exists():
+        try:
+            async with aiofiles.open(en_path, "r", encoding="utf-8") as f:
+                content = await f.read()
+                _translations["en"] = json.loads(content)
+            _LOGGER.info("Loaded English translations")
+        except Exception as e:
+            _LOGGER.warning("Failed to load en.json: %s", e)
+    
+    # Load requested language
+    if language != "en":
+        lang_path = translations_path / f"{language}.json"
+        if lang_path.exists():
+            try:
+                async with aiofiles.open(lang_path, "r", encoding="utf-8") as f:
+                    content = await f.read()
+                    _translations[language] = json.loads(content)
+                _LOGGER.info("Loaded %s translations", language)
+            except Exception as e:
+                _LOGGER.warning("Failed to load %s.json: %s", language, e)
 
 
 def t(key: str, default: str = None, **kwargs) -> str:

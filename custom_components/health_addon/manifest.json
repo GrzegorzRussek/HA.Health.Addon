@@ -6,6 +6,6 @@
   "documentation": "https://github.com/GrzegorzRussek/HA.Health.Addon",
   "integration_type": "integration",
   "iot_class": "local_polling",
-  "requirements": ["aiosqlite>=0.19.0"],
-  "version": "0.4.4"
+  "requirements": ["aiosqlite>=0.19.0", "aiofiles>=2.0.0"],
+  "version": "0.4.5"
 }

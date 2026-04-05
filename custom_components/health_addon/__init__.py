@@ -27,10 +27,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     
     hass.services.async_register(DOMAIN, "reload", reload_service)
     
-    # Load translations based on HA language
+    # Load translations based on HA language (async)
     translations_path = Path(__file__).parent / "translations"
     ha_language = hass.config.language or "en"
-    load_translations(translations_path, ha_language)
+    await load_translations(translations_path, ha_language)
     _LOGGER.info("Health Addon loaded with language: %s", ha_language)
     
     return True
