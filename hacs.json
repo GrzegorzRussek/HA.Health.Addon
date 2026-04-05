@@ -11,7 +11,7 @@
     "issue_tracker": "https://github.com/GrzegorzRussek/HA.Health.Addon/issues",
     "name": "Health Addon",
     "requirements": ["aiosqlite"],
-    "version": "1.0.0"
+    "version": "1.0.2"
   },
   "upload_repository": true
 }
