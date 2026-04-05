@@ -83,3 +83,15 @@ class HealthAddonConfigFlow(config_entries.ConfigFlow, domain="health_addon"):
             data_schema=vol.Schema(schema),
             description_placeholders={},
         )
+
+
+class HealthAddonOptionsFlow(config_entries.OptionsFlow):
+    """Options flow for Health Addon - allows reload without restart."""
+
+    async def async_step_init(self, user_input=None):
+        """Initialize options flow."""
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({}),
+            description_placeholders={"reload_note": "Reload to refresh the integration without restarting Home Assistant."},
+        )
