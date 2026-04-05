@@ -21,6 +21,14 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Health Addon component."""
     hass.data[DOMAIN] = {"database": None}
     
+    # Register reload service
+    async def reload_service(call):
+        """Reload Health Addon integration."""
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            await hass.config_entries.async_reload(entry.entry_id)
+    
+    hass.services.async_register(DOMAIN, "reload", reload_service)
+    
     # Load translations based on HA language
     translations_path = Path(__file__).parent / "translations"
     ha_language = hass.config.language or "en"

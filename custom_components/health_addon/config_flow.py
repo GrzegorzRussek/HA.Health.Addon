@@ -29,10 +29,9 @@ class HealthAddonConfigFlow(config_entries.ConfigFlow, domain="health_addon"):
         if users:
             # Option to select existing user
             user_options = {u["user_id"]: u["name"] for u in users}
-            schema["select_user"] = vol.In selection({
-                "new": "➕ Add New User",
-                **{uid: name for uid, name in user_options.items()}
-            })
+            options = {"new": "➕ Add New User"}
+            options.update(user_options)
+            schema["select_user"] = vol.In(options)
         
         # Always offer option to add new user
         if not users:
@@ -46,8 +45,9 @@ class HealthAddonConfigFlow(config_entries.ConfigFlow, domain="health_addon"):
             else:
                 # Use existing user
                 user_id = user_input.get("select_user")
+                user_name = next((u["name"] for u in users if u["user_id"] == user_id), user_id)
                 return self.async_create_entry(
-                    title=f"Health Addon - {users[[u['user_id'] for u in users].index(user_id)]['name']}",
+                    title=f"Health Addon - {user_name}",
                     data={"user_id": user_id}
                 )
 
