@@ -60,7 +60,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: config_entries.ConfigEnt
     )
 
     hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "sensor")
+        hass.config_entries.async_forward_entry_setups(entry, "sensor")
     )
     return True
 
